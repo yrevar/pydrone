@@ -1,22 +1,25 @@
-Getting Started:
-----------------
+#PyDrone - Python API for the ARDrone UAV.
 
-```python
->>> import libardrone
->>> drone = libardrone.ARDrone()
->>> # You might need to call drone.reset() before taking off if the drone is in
->>> # emergency mode
->>> drone.takeoff()
->>> drone.land()
->>> drone.halt()
-```
+##Overview
+
+PyDrone is a set of python libraries originally written by Bastian Venthur.
+
+##Getting Started:
+
+	$ python
+	>>> import libardrone
+	>>> drone = libardrone.ARDrone()
+	>>> # You might need to call drone.reset() before taking off if the drone is in
+	>>> # emergency mode
+	>>> drone.takeoff()
+	>>> drone.land()
+	>>> drone.halt()
 
 The drone's property `image` contains always the latest image from the camera.
 The drone's property `navdata` contains always the latest navdata.
 
 
-Demo:
------
+##Demo:
 
 There is also a demo application included which shows the video from the drone
 and lets you remote-control the drone with the keyboard:
@@ -30,33 +33,24 @@ and lets you remote-control the drone with the keyboard:
     UP/DOWN     - altitude
     LEFT/RIGHT  - turn left/right
 
-Here is a [video] of the library in action:
+##Repository:
 
-  [video]: http://youtu.be/2HEV37GbUow
+The original public repository is located here:
 
-Repository:
------------
-
-The public repository is located here:
-
-  git://github.com/venthur/python-ardrone.git
+	git://github.com/venthur/python-ardrone.git
 
 
-Requirements:
--------------
+##Requirements:
 
 This software was tested with the following setup:
 
-  * Python 2.6.6
-  * Psyco 1.6 (recommended)
-  * Pygame 1.8.1 (only for the demo)
-  * Unmodified AR.Drone firmware 1.5.1
+  * Python 2.7.5
+  * Pygame 1.9.2 (only for the demo)
+  * Unmodified ARDrone Parrot
 
 
-License:
---------
+##License:
 
 This software is published under the terms of the MIT License:
 
-  http://www.opensource.org/licenses/mit-license.php
-
+	http://www.opensource.org/licenses/mit-license.php
