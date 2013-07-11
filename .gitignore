@@ -1,1 +1,12 @@
 *.pyc
+*.pyo
+*.pyd
+*.swp
+pydrone.egg-info/
+doc/
+build/
+dist/
+*.so
+pydrone/*.c
+pydrone/*.html
+*.DS_Store
