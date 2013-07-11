@@ -1,32 +1,5 @@
-#!/usr/bin/env python
-
-# Copyright (c) 2011 Bastian Venthur
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-
-
-"""
-Video decoding for the AR.Drone.
-
-This library uses psyco to speed-up the decoding process. It is however written
-in a way that it works also without psyco installed. On the author's
-development machine the speed up is from 2FPS w/o psyco to > 20 FPS w/ psyco.
+"""\
+Video decoding for the ARDrone.
 """
 
 
@@ -35,12 +8,6 @@ import cProfile
 import datetime
 import struct
 import sys
-
-try:
-    import psyco
-except ImportError:
-    print "Please install psyco for better video decoding performance."
-
 
 # from zig-zag back to normal
 ZIG_ZAG_POSITIONS = array.array('B',
@@ -65,7 +32,7 @@ IQUANT_TAB = array.array('B',
      17, 19, 21, 23, 25, 27, 29, 31))
 
 # Used for upscaling the 8x8 b- and r-blocks to 16x16
-SCALE_TAB = array.array('B', 
+SCALE_TAB = array.array('B',
     ( 0,  0,  1,  1,  2,  2,  3,  3,
       0,  0,  1,  1,  2,  2,  3,  3,
       8,  8,  9,  9, 10, 10, 11, 11,
@@ -188,7 +155,8 @@ SHIFT = 32*(TRIES-1)
 
 
 def _first_half(data):
-    """Helper function used to precompute the zero values in a 12 bit datum.
+    """\
+    Helper function used to precompute the zero values in a 12 bit datum.
     """
     # data has to be 12 bits wide
     streamlen = 0
@@ -208,7 +176,8 @@ def _first_half(data):
 
 
 def _second_half(data):
-    """Helper function to precompute the nonzeror values in a 15 bit datum.
+    """\
+    Helper function to precompute the nonzeror values in a 15 bit datum.
     """
     # data has to be 15 bits wide
     streamlen = 0
@@ -239,7 +208,9 @@ SH = [_second_half(i) for i in range(2**15)]
 
 
 class BitReader(object):
-    """Bitreader. Given a stream of data, it allows to read it bitwise."""
+    """\
+    Bit reader. Given a stream of data, it allows to read it bitwise.
+    """
 
     def __init__(self, packet):
         self.packet = packet
@@ -249,7 +220,8 @@ class BitReader(object):
         self.read_bits = 0
 
     def read(self, nbits, consume=True):
-        """Read nbits and return the integervalue of the read bits.
+        """\
+        Read nbits and return the integervalue of the read bits.
 
         If consume is False, it behaves like a 'peek' method (ie it reads the
         bits but does not consume them.
@@ -272,13 +244,16 @@ class BitReader(object):
         return res
 
     def align(self):
-        """Byte align the data stream."""
+        """\
+        Byte align the data stream.
+        """
         shift = (8 - self.read_bits) % 8
         self.read(shift)
 
 
 def inverse_dct(block):
-    """Inverse discrete cosine transform.
+    """\
+    Inverse discrete cosine transform.
     """
     workspace = ZEROS[0:64]
     data = ZEROS[0:64]
@@ -385,7 +360,8 @@ def inverse_dct(block):
 
 
 def get_pheader(bitreader):
-    """Read the picture header.
+    """\
+    Read the picture header.
 
     Returns the width and height of the image.
     """
@@ -413,7 +389,8 @@ def get_pheader(bitreader):
 
 
 def get_mb(bitreader, picture, width, offset):
-    """Get macro block.
+    """\
+    Get macro block.
 
     This method does not return data but modifies the picture parameter in
     place.
@@ -454,7 +431,8 @@ def get_mb(bitreader, picture, width, offset):
 
 
 def get_block(bitreader, has_coeff):
-    """Read a 8x8 block from the data stream.
+    """\
+    Read a 8x8 block from the data stream.
 
     This method takes care of the huffman-, RLE, zig-zag and idct and returns a
     list of 64 ints.
@@ -492,7 +470,8 @@ def get_block(bitreader, has_coeff):
 
 
 def get_gob(bitreader, picture, slicenr, width):
-    """Read a group of blocks.
+    """\
+    Read a group of blocks.
 
     The method does not return data, the picture parameter is modified in place
     instead.
@@ -515,7 +494,8 @@ def get_gob(bitreader, picture, slicenr, width):
 
 
 def read_picture(data):
-    """Convert an AR.Drone image packet to rgb-string.
+    """\
+    Convert an AR.Drone image packet to rgb-string.
 
     Returns: width, height, image and time to decode the image
     """
@@ -532,17 +512,6 @@ def read_picture(data):
     assert(eos == 0b0000000000000000111111)
     t2 = datetime.datetime.now()
     return width, height, ''.join(image), (t2 - t).microseconds / 1000000.
-
-
-try:
-    psyco.bind(BitReader)
-    psyco.bind(get_block)
-    psyco.bind(get_gob)
-    psyco.bind(get_mb)
-    psyco.bind(inverse_dct)
-    psyco.bind(read_picture)
-except NameError:
-    print "Unable to bind video decoding methods with psyco. Proceeding anyways, but video decoding will be slow!"
 
 
 def main():
@@ -576,4 +545,3 @@ if __name__ == '__main__':
         cProfile.run('main()')
     else:
         main()
-

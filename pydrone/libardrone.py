@@ -1,28 +1,7 @@
-# Copyright (c) 2011 Bastian Venthur
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+"""\
+Python library for the ARDrone.
 
-
-"""
-Python library for the AR.Drone.
-
-This module was tested with Python 2.6.6 and AR.Drone vanilla firmware 1.5.1.
+This module was tested with Python 2.7.5 and ARDrone Parrot.
 """
 
 
@@ -34,19 +13,16 @@ import multiprocessing
 
 import arnetwork
 
-
-__author__ = "Bastian Venthur"
-
-
 ARDRONE_NAVDATA_PORT = 5554
 ARDRONE_VIDEO_PORT = 5555
 ARDRONE_COMMAND_PORT = 5556
 
 
 class ARDrone(object):
-    """ARDrone Class.
+    """\
+    ARDrone Class.
 
-    Instanciate this class to control your drone and receive decoded video and
+    Instantiate this class to control your drone and receive decoded video and
     navdata.
     """
 
@@ -69,69 +45,97 @@ class ARDrone(object):
         self.time = 0
 
     def takeoff(self):
-        """Make the drone takeoff."""
+        """\
+        Make the drone takeoff.
+        """
         self.at(at_ftrim)
         self.at(at_config, "control:altitude_max", "20000")
         self.at(at_ref, True)
 
     def land(self):
-        """Make the drone land."""
+        """\
+        Make the drone land.
+        """
         self.at(at_ref, False)
 
     def hover(self):
-        """Make the drone hover."""
+        """\
+        Make the drone hover.
+        """
         self.at(at_pcmd, False, 0, 0, 0, 0)
 
     def move_left(self):
-        """Make the drone move left."""
+        """\
+        Make the drone move left.
+        """
         self.at(at_pcmd, True, -self.speed, 0, 0, 0)
 
     def move_right(self):
-        """Make the drone move right."""
+        """\
+        Make the drone move right.
+        """
         self.at(at_pcmd, True, self.speed, 0, 0, 0)
 
     def move_up(self):
-        """Make the drone rise upwards."""
+        """\
+        Make the drone rise upwards.
+        """
         self.at(at_pcmd, True, 0, 0, self.speed, 0)
 
     def move_down(self):
-        """Make the drone decent downwards."""
+        """\
+        Make the drone decent downwards.
+        """
         self.at(at_pcmd, True, 0, 0, -self.speed, 0)
 
     def move_forward(self):
-        """Make the drone move forward."""
+        """\
+        Make the drone move forward.
+        """
         self.at(at_pcmd, True, 0, -self.speed, 0, 0)
 
     def move_backward(self):
-        """Make the drone move backwards."""
+        """\
+        Make the drone move backwards.
+        """
         self.at(at_pcmd, True, 0, self.speed, 0, 0)
 
     def turn_left(self):
-        """Make the drone rotate left."""
+        """\
+        Make the drone rotate left.
+        """
         self.at(at_pcmd, True, 0, 0, 0, -self.speed)
 
     def turn_right(self):
-        """Make the drone rotate right."""
+        """\
+        Make the drone rotate right.
+        """
         self.at(at_pcmd, True, 0, 0, 0, self.speed)
 
     def reset(self):
-        """Toggle the drone's emergency state."""
+        """\
+        Toggle the drone's emergency state.
+        """
         self.at(at_ref, False, True)
         self.at(at_ref, False, False)
 
     def trim(self):
-        """Flat trim the drone."""
+        """\
+        Flat trim the drone.
+        """
         self.at(at_ftrim)
 
     def set_speed(self, speed):
-        """Set the drone's speed.
+        """\
+        Set the drone's speed.
 
         Valid values are floats from [0..1]
         """
         self.speed = speed
 
     def at(self, cmd, *args, **kwargs):
-        """Wrapper for the low level at commands.
+        """\
+        Wrapper for the low level at commands.
 
         This method takes care that the sequence number is increased after each
         at command and the watchdog timer is started to make sure the drone
@@ -146,7 +150,8 @@ class ARDrone(object):
         self.lock.release()
 
     def commwdg(self):
-        """Communication watchdog signal.
+        """\
+        Communication watchdog signal.
 
         This needs to be send regulary to keep the communication w/ the drone
         alive.
@@ -154,7 +159,8 @@ class ARDrone(object):
         self.at(at_comwdg)
 
     def halt(self):
-        """Shutdown the drone.
+        """\
+        Shutdown the drone.
 
         This method does not land or halt the actual drone, but the
         communication with the drone. You should call it at the end of your
@@ -176,7 +182,7 @@ class ARDrone(object):
 ###############################################################################
 
 def at_ref(seq, takeoff, emergency=False):
-    """
+    """\
     Basic behaviour of the drone: take-off/landing, emergency stop/reset)
 
     Parameters:
@@ -192,7 +198,7 @@ def at_ref(seq, takeoff, emergency=False):
     at("REF", seq, [p])
 
 def at_pcmd(seq, progressive, lr, fb, vv, va):
-    """
+    """\
     Makes the drone move (translate/rotate).
 
     Parameters:
@@ -203,7 +209,7 @@ def at_pcmd(seq, progressive, lr, fb, vv, va):
     rb -- front-back tilt: float [-1..1] negative: forwards, positive:
         backwards
     vv -- vertical speed: float [-1..1] negative: go down, positive: rise
-    va -- angular speed: float [-1..1] negative: spin left, positive: spin 
+    va -- angular speed: float [-1..1] negative: spin left, positive: spin
         right
 
     The above float values are a percentage of the maximum speed.
@@ -212,7 +218,7 @@ def at_pcmd(seq, progressive, lr, fb, vv, va):
     at("PCMD", seq, [p, float(lr), float(fb), float(vv), float(va)])
 
 def at_ftrim(seq):
-    """
+    """\
     Tell the drone it's lying horizontally.
 
     Parameters:
@@ -221,7 +227,7 @@ def at_ftrim(seq):
     at("FTRIM", seq, [])
 
 def at_zap(seq, stream):
-    """
+    """\
     Selects which video stream to send on the video UDP port.
 
     Parameters:
@@ -232,18 +238,20 @@ def at_zap(seq, stream):
     at("ZAP", seq, [stream])
 
 def at_config(seq, option, value):
-    """Set configuration parameters of the drone."""
+    """\
+    Set configuration parameters of the drone.
+    """
     at("CONFIG", seq, [str(option), str(value)])
 
 def at_comwdg(seq):
-    """
+    """\
     Reset communication watchdog.
     """
     # FIXME: no sequence number
     at("COMWDG", seq, [])
 
 def at_aflight(seq, flag):
-    """
+    """\
     Makes the drone fly autonomously.
 
     Parameters:
@@ -253,7 +261,7 @@ def at_aflight(seq, flag):
     at("AFLIGHT", seq, [flag])
 
 def at_pwm(seq, m1, m2, m3, m4):
-    """
+    """\
     Sends control values directly to the engines, overriding control loops.
 
     Parameters:
@@ -267,7 +275,7 @@ def at_pwm(seq, m1, m2, m3, m4):
     pass
 
 def at_led(seq, anim, f, d):
-    """
+    """\
     Control the drones LED.
 
     Parameters:
@@ -279,7 +287,7 @@ def at_led(seq, anim, f, d):
     pass
 
 def at_anim(seq, anim, d):
-    """
+    """\
     Makes the drone execute a predefined movement (animation).
 
     Parameters:
@@ -290,7 +298,7 @@ def at_anim(seq, anim, d):
     at("ANIM", seq, [anim, d])
 
 def at(command, seq, params):
-    """
+    """\
     Parameters:
     command -- the command
     seq -- the sequence number
@@ -309,7 +317,8 @@ def at(command, seq, params):
     sock.sendto(msg, ("192.168.1.1", ARDRONE_COMMAND_PORT))
 
 def f2i(f):
-    """Interpret IEEE-754 floating-point value as signed integer.
+    """\
+    Interpret IEEE-754 floating-point value as signed integer.
 
     Arguments:
     f -- floating point value
@@ -320,7 +329,9 @@ def f2i(f):
 ### navdata
 ###############################################################################
 def decode_navdata(packet):
-    """Decode a navdata packet."""
+    """\
+    Decode a navdata packet.
+    """
     offset = 0
     _ =  struct.unpack_from("IIII", packet, offset)
     drone_state = dict()
@@ -387,7 +398,7 @@ if __name__ == "__main__":
     import termios
     import fcntl
     import os
-    
+
     fd = sys.stdin.fileno()
 
     oldterm = termios.tcgetattr(fd)
