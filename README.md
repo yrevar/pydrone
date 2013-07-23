@@ -1,4 +1,4 @@
-#PyDrone - Python API for the ARDrone UAV.
+#PyDrone - Python API for the ARDrone.
 
 ##Overview
 
