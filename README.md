@@ -8,13 +8,24 @@ PyDrone is a set of python libraries originally written by Bastian Venthur.
 
 This software was tested with the following setup:
 
-  * [Python] [python] 2.7.5
-  * [Pygame] [pygame] 1.9.2 (only for the demo)
-  * Unmodified [ARDrone] [drone] Parrot
+  * [Python] [python] 2.7.5.
+  * [Cython] [cython] 0.19.1.
+  * [setuptools] [setuptools].
+  * [Pygame] [pygame] 1.9.2 (only for the demo).
   
 ####Note: On OSX Python and PyGame were installed using [Homebrew] [brew] and [PIP] [pip].
 
 ##Getting Started:
+
+###Cython Modules
+
+The arvideo module is not included as a pre-built binary, to use this API generate the C source code
+and build it in-place by using the following commands:
+
+	cython pydrone/*.pyx
+	python setup.py build_ext --inplace
+
+After building the arvideo library proceed to test the API and drone:
 
 	$ python
 	>>> from pydrone import libardrone
@@ -59,3 +70,5 @@ This software is published under the terms of the MIT License:
 [drone]: http://ardrone2.parrot.com
 [brew]: https://github.com/mxcl/homebrew
 [pip]: http://www.pip-installer.org/en/latest/
+[cython]: http://cython.org
+[setuptools]: http://pypi.python.org/pypi/setuptools
