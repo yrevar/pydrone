@@ -11,7 +11,7 @@ import pygame
 from pydrone import libardrone
 
 
-def main():
+if __name__ == '__main__':
     pygame.init()
     W, H = 320, 240
     screen = pygame.display.set_mode((W, H))
@@ -81,7 +81,9 @@ def main():
         try:
             surface = pygame.image.fromstring(drone.image, (W, H), 'RGB')
             # battery status
-            hud_color = (255, 0, 0) if drone.navdata.get('drone_state', dict()).get('emergency_mask', 1) else (10, 10, 255)
+            hud_color = (10, 10, 255)
+            if drone.navdata.get('drone_state', dict()).get('emergency_mask', 1):
+                hud_color = (255, 0, 0)
             bat = drone.navdata.get(0, dict()).get('battery', 0)
             f = pygame.font.Font(None, 20)
             hud = f.render('Battery: %i%%' % bat, True, hud_color)
@@ -91,13 +93,9 @@ def main():
             pass
 
         pygame.display.flip()
-        clock.tick(50)
+        clock.tick()
         pygame.display.set_caption("FPS: %.2f" % clock.get_fps())
 
     print "Shutting down...",
     drone.halt()
     print "Ok."
-
-if __name__ == '__main__':
-    main()
-

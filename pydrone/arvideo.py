@@ -3,14 +3,13 @@ Video decoding for the ARDrone.
 """
 
 
-import array
-import cProfile
-import datetime
-import struct
-import sys
+from array import array
+from datetime import datetime
+from struct import unpack_from, error
+
 
 # from zig-zag back to normal
-ZIG_ZAG_POSITIONS = array.array('B',
+ZIG_ZAG_POSITIONS = array('B',
     ( 0,  1,  8, 16,  9,  2, 3, 10,
      17, 24, 32, 25, 18, 11, 4,  5,
      12, 19, 26, 33, 40, 48, 41, 34,
@@ -21,7 +20,7 @@ ZIG_ZAG_POSITIONS = array.array('B',
      53, 60, 61, 54, 47, 55, 62, 63))
 
 # Inverse quantization
-IQUANT_TAB = array.array('B',
+IQUANT_TAB = array('B',
     ( 3,  5,  7,  9, 11, 13, 15, 17,
       5,  7,  9, 11, 13, 15, 17, 19,
       7,  9, 11, 13, 15, 17, 19, 21,
@@ -32,7 +31,7 @@ IQUANT_TAB = array.array('B',
      17, 19, 21, 23, 25, 27, 29, 31))
 
 # Used for upscaling the 8x8 b- and r-blocks to 16x16
-SCALE_TAB = array.array('B',
+SCALE_TAB = array('B',
     ( 0,  0,  1,  1,  2,  2,  3,  3,
       0,  0,  1,  1,  2,  2,  3,  3,
       8,  8,  9,  9, 10, 10, 11, 11,
@@ -70,7 +69,7 @@ SCALE_TAB = array.array('B',
      60, 60, 61, 61, 62, 62, 63, 63))
 
 # Count leading zeros look up table
-CLZLUT = array.array('B',
+CLZLUT = array('B',
     (8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
      3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
@@ -89,7 +88,7 @@ CLZLUT = array.array('B',
      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
 # Map pixels from four 8x8 blocks to one 16x16
-MB_TO_GOB_MAP = array.array('B',
+MB_TO_GOB_MAP = array('B',
     [  0,   1,   2,   3,   4,   5,   6,   7,
       16,  17,  18,  19,  20,  21,  22,  23,
       32,  33,  34,  35,  36,  37,  38,  39,
@@ -122,12 +121,13 @@ MB_TO_GOB_MAP = array.array('B',
      216, 217, 218, 219, 220, 221, 222, 223,
      232, 233, 234, 235, 236, 237, 238, 239,
      248, 249, 250, 251, 252, 253, 254, 255])
-MB_ROW_MAP = array.array('B', [i / 16 for i in MB_TO_GOB_MAP])
-MB_COL_MAP = array.array('B', [i % 16 for i in MB_TO_GOB_MAP])
+
+MB_ROW_MAP = array('B', [i / 16 for i in MB_TO_GOB_MAP])
+MB_COL_MAP = array('B', [i % 16 for i in MB_TO_GOB_MAP])
 
 # An array of zeros. It is much faster to take the zeros from here than to
 # generate a new list when needed.
-ZEROS = array.array('i', [0 for i in range(256)])
+ZEROS = array('i', [0 for i in range(256)])
 
 # Constants needed for the inverse discrete cosine transform.
 FIX_0_298631336 = 2446
@@ -157,6 +157,9 @@ SHIFT = 32*(TRIES-1)
 def _first_half(data):
     """\
     Helper function used to precompute the zero values in a 12 bit datum.
+
+    @param data: Data.
+    @type data: C{int}
     """
     # data has to be 12 bits wide
     streamlen = 0
@@ -178,6 +181,9 @@ def _first_half(data):
 def _second_half(data):
     """\
     Helper function to precompute the nonzeror values in a 15 bit datum.
+
+    @param data: Data.
+    @type data: C{int}
     """
     # data has to be 15 bits wide
     streamlen = 0
@@ -209,10 +215,18 @@ SH = [_second_half(i) for i in range(2**15)]
 
 class BitReader(object):
     """\
-    Bit reader. Given a stream of data, it allows to read it bitwise.
+    Bit reader class.
+
+    Given a stream of data, it allows to read it bitwise.
     """
 
     def __init__(self, packet):
+        """\
+        Constructor.
+
+        @param data: Data.
+        @type data: C{int}
+        """
         self.packet = packet
         self.offset = 0
         self.bits_left = 0
@@ -221,16 +235,24 @@ class BitReader(object):
 
     def read(self, nbits, consume=True):
         """\
-        Read nbits and return the integervalue of the read bits.
+        Read nbits and return the integer value of the read bits.
 
-        If consume is False, it behaves like a 'peek' method (ie it reads the
-        bits but does not consume them.
+        If consume is False, it behaves like a 'peek' method (i.e. it reads the
+        bits but does not consume them).
+
+        @param nbits: The bits.
+        @type nbits: C{int}
+        @param consume: Option.
+        @type consume: C{bool}
+        @return: The integer value.
+        @rtype: C{int}
         """
         # Read enough bits into chunk so we have at least nbits available
         while nbits > self.bits_left:
             try:
-                self.chunk = (self.chunk << 32) | struct.unpack_from('<I', self.packet, self.offset)[0]
-            except struct.error:
+                self.chunk = (self.chunk << 32) | unpack_from('<I',
+                    self.packet, self.offset)[0]
+            except error:
                 self.chunk <<= 32
             self.offset += 4
             self.bits_left += 32
@@ -254,6 +276,11 @@ class BitReader(object):
 def inverse_dct(block):
     """\
     Inverse discrete cosine transform.
+
+    @param block: Block data.
+    @type block: C{array.array}
+    @return: The inverted data.
+    @rtype: C{array.array}
     """
     workspace = ZEROS[0:64]
     data = ZEROS[0:64]
@@ -363,7 +390,10 @@ def get_pheader(bitreader):
     """\
     Read the picture header.
 
-    Returns the width and height of the image.
+    @param bitreader: BitReader object.
+    @type bitreader: C{pydrone.arvideo.BitReader}
+    @return: The width and height of the image.
+    @rtype: C{int}, C{int}
     """
     bitreader.align()
     psc = bitreader.read(22)
@@ -390,10 +420,11 @@ def get_pheader(bitreader):
 
 def get_mb(bitreader, picture, width, offset):
     """\
-    Get macro block.
+    Get macro block. This method does not return data but modifies the
+    picture parameter in place.
 
-    This method does not return data but modifies the picture parameter in
-    place.
+    @param bitreader: BitReader object.
+    @type bitreader: C{pydrone.arvideo.BitReader}
     """
     mbc = bitreader.read(1)
     if mbc == 0:
@@ -432,10 +463,13 @@ def get_mb(bitreader, picture, width, offset):
 
 def get_block(bitreader, has_coeff):
     """\
-    Read a 8x8 block from the data stream.
+    Read a 8x8 block from the data stream. This method takes care of the
+    huffman-, RLE, zig-zag and idct.
 
-    This method takes care of the huffman-, RLE, zig-zag and idct and returns a
-    list of 64 ints.
+    @param bitreader: BitReader object.
+    @type bitreader: C{pydrone.arvideo.BitReader}
+    @return: A list.
+    @rtype: C{list} of C{int}
     """
     # read the first 10 bits in a 16 bit datum
     out_list = ZEROS[0:64]
@@ -446,7 +480,6 @@ def get_block(bitreader, has_coeff):
     while 1:
         _ = bitreader.read(32*TRIES, False)
         streamlen = 0
-        #######################################################################
         for j in range(TRIES):
             data = (_ << streamlen) & MASK
             data >>= SHIFT
@@ -464,17 +497,17 @@ def get_block(bitreader, has_coeff):
             j = ZIG_ZAG_POSITIONS[i]
             out_list[j] = tmp*IQUANT_TAB[j]
             i += 1
-        #######################################################################
         bitreader.read(streamlen)
     return inverse_dct(out_list)
 
 
 def get_gob(bitreader, picture, slicenr, width):
     """\
-    Read a group of blocks.
+    Read a group of blocks. The method does not return data, the picture parameter
+    is modified in place instead.
 
-    The method does not return data, the picture parameter is modified in place
-    instead.
+    @param bitreader: BitReader object.
+    @type bitreader: C{pydrone.arvideo.BitReader}
     """
     # the first gob has a special header
     if slicenr > 0:
@@ -497,10 +530,13 @@ def read_picture(data):
     """\
     Convert an AR.Drone image packet to rgb-string.
 
-    Returns: width, height, image and time to decode the image
+    @param data: Data.
+    @type data: C{int}
+    @return: width, height, image, and time to decode the image.
+    @rtype: C{int}, C{int}, C{str}, C{float}
     """
     bitreader = BitReader(data)
-    t = datetime.datetime.now()
+    t = datetime.now()
     width, height = get_pheader(bitreader)
     slices = height / 16
     blocks = width / 16
@@ -510,38 +546,5 @@ def read_picture(data):
     bitreader.align()
     eos = bitreader.read(22)
     assert(eos == 0b0000000000000000111111)
-    t2 = datetime.datetime.now()
+    t2 = datetime.now()
     return width, height, ''.join(image), (t2 - t).microseconds / 1000000.
-
-
-def main():
-    fh = open('framewireshark.raw', 'r')
-    #fh = open('videoframe.raw', 'r')
-    data = fh.read()
-    fh.close()
-    runs = 20
-    t = 0
-    for i in range(runs):
-        print '.',
-        width, height, image, ti = read_picture(data)
-        #show_image(image, width, height)
-        t += ti
-    print
-    print 'avg time:\t', t / runs, 'sec'
-    print 'avg fps:\t', 1 / (t / runs), 'fps'
-    if 'image' in sys.argv:
-        import pygame
-        pygame.init()
-        W, H = 320, 240
-        screen = pygame.display.set_mode((W, H))
-        surface = pygame.image.fromstring(image, (width, height), 'RGB')
-        screen.blit(surface, (0, 0))
-        pygame.display.flip()
-        raw_input()
-
-
-if __name__ == '__main__':
-    if 'profile' in sys.argv:
-        cProfile.run('main()')
-    else:
-        main()
