@@ -3,6 +3,11 @@ Demo app for the ARDrone.
 
 This simple application allows to control the drone and see the drone's video
 stream.
+
+Copyright (c) 2011 Bastian Venthur
+
+The license and distribution terms for this file may be
+found in the file LICENSE in this distribution.
 """
 
 

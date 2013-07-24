@@ -2,6 +2,11 @@
 Python library for the ARDrone.
 
 This module was tested with Python 2.7.5 and ARDrone Parrot.
+
+Copyright (c) 2011 Bastian Venthur
+
+The license and distribution terms for this file may be
+found in the file LICENSE in this distribution.
 """
 
 

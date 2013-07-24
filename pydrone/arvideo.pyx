@@ -1,5 +1,10 @@
 """\
 Video decoding for the ARDrone.
+
+Copyright (c) 2011 Bastian Venthur
+
+The license and distribution terms for this file may be
+found in the file LICENSE in this distribution.
 """
 
 
