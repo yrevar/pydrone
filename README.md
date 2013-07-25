@@ -19,13 +19,13 @@ This software was tested with the following setup:
 
 ###Cython Modules
 
-The arvideo module is not included as a pre-built binary, to use this API generate the C source code
+The pydrone modules are not included as pre-built binaries. To use this API generate the C source code
 and build it in-place by using the following commands:
 
 	cython pydrone/*.pyx
 	python setup.py build_ext --inplace
 
-After building the arvideo library proceed to test the API and drone:
+After building the pydrone libraries proceed to test the API and drone:
 
 	$ python
 	>>> from pydrone import libardrone
