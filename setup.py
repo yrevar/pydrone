@@ -17,7 +17,7 @@ NAME = 'pydrone'
 URL = 'https://github.com/alarconj/pydrone'
 PACKAGE = 'pydrone'
 
-CYTHON_MODULES = ['arvideo']
+CYTHON_MODULES = ['arvideo', 'arnetwork', 'libardrone']
 
 
 class GenerateDoc(Command):
