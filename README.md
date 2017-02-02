@@ -53,6 +53,25 @@ and lets you remote-control the drone with the keyboard:
     UP/DOWN     - altitude
     LEFT/RIGHT  - turn left/right
 
+##Make it autonomous?
+
+	$ python
+	>>> from pydrone import libardrone
+	>>> import cv2
+	>>> drone_cam_front = cv2.VideoCapture('tcp://192.168.1.1:5555') # initialize video capture
+	>>> drone = libardrone.ARDrone()
+	>>> while True:
+	>>>	got_frame, frame = drone_cam_front.read() # read frame
+	>>>	if got_frame:
+	>>>		cv2.imshow('frame', frame) # display frame
+	>>>		if cv2.waitKey(1) & 0xFF == 27: # stop processing on escape key
+	>>>			break
+	>>>		# Do something cool here!
+	>>>	else:
+	>>>		print 'error reading video feed'
+	>>> drone_cam_front.release()
+	>>> cv2.destroyAllWindows()
+
 ##Repository:
 
 The original public repository is located here:
